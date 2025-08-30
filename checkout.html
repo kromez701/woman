@@ -6527,166 +6527,118 @@ var vstar_ai_summary_settings = {"home":{"is_active":0,"title_color":"#303030","
     });
   </script>
 
- <script>
-// Product variant configuration with correct prices
+<script>
+    // Simple working variant handler
 const variantConfig = {
   'nYVE': {
     price: '€29,95',
-    redirectUrl: 'https://yourstore.com/checkout/buy-1-variant',
-    title: 'Buy 1, Get 1 FREE Gift'
+    redirectUrl: 'https://yourstore.com/checkout/buy-1-variant'
   },
   'dczk': {
     price: '€39,95', 
-    redirectUrl: 'https://yourstore.com/checkout/buy-2-variant',
-    title: 'Buy 2, Get 2 FREE Gifts'
+    redirectUrl: 'https://yourstore.com/checkout/buy-2-variant'
   },
   'a49f': {
     price: '€49,95',
-    redirectUrl: 'https://yourstore.com/checkout/buy-4-variant', 
-    title: 'Buy 4, Get 4 FREE Gifts'
+    redirectUrl: 'https://yourstore.com/checkout/buy-4-variant'
   }
 };
 
-let selectedVariant = 'a49f'; // Default selection
+let selectedVariant = 'a49f';
 
-// Force set all variant box prices immediately
-function setAllVariantPrices() {
-  console.log('Setting all variant prices...');
+// Set the correct prices in variant boxes immediately
+function setPricesOnLoad() {
+  // Set price for Buy 1 variant
+  const buy1Price = document.querySelector('[data-deal-bar-id="nYVE"] .kaching-bundles__bar-price');
+  if (buy1Price) buy1Price.textContent = '€29,95';
   
-  // Set prices for each variant box specifically
-  const nYVEPrice = document.querySelector('[data-deal-bar-id="nYVE"] .kaching-bundles__bar-price');
-  if (nYVEPrice) nYVEPrice.textContent = '€29,95';
+  // Set price for Buy 2 variant  
+  const buy2Price = document.querySelector('[data-deal-bar-id="dczk"] .kaching-bundles__bar-price');
+  if (buy2Price) buy2Price.textContent = '€39,95';
   
-  const dczkPrice = document.querySelector('[data-deal-bar-id="dczk"] .kaching-bundles__bar-price');
-  if (dczkPrice) dczkPrice.textContent = '€39,95';
-  
-  const a49fPrice = document.querySelector('[data-deal-bar-id="a49f"] .kaching-bundles__bar-price');
-  if (a49fPrice) a49fPrice.textContent = '€49,95';
-  
-  console.log('Variant prices set');
+  // Set price for Buy 4 variant
+  const buy4Price = document.querySelector('[data-deal-bar-id="a49f"] .kaching-bundles__bar-price');
+  if (buy4Price) buy4Price.textContent = '€49,95';
 }
 
-// Update only the add to cart button price based on selection
-function updateButtonPrice(variantId) {
-  const config = variantConfig[variantId];
+// Update button price when variant changes
+function updateButtonPrice() {
+  const config = variantConfig[selectedVariant];
   if (!config) return;
   
-  console.log('Updating button price to:', config.price);
+  // Update the price in the add to cart button
+  const buttonPrice = document.querySelector('gp-product-price .gp-price');
+  if (buttonPrice) {
+    buttonPrice.textContent = config.price;
+  }
   
-  // Target all possible button price elements
-  const buttonPriceSelectors = [
-    'gp-product-price .gp-price',
-    '.gp-button-price .gp-price', 
-    '.gp-price.gp-money.gp-button-price',
-    '#p-price-undefined .gp-price',
-    '.gp-content-product-button + gp-product-price .gp-price'
-  ];
+  // Also try alternative selectors
+  const altPrices = document.querySelectorAll('.gp-button-price .gp-price, #p-price-undefined .gp-price');
+  altPrices.forEach(el => el.textContent = config.price);
+}
+
+// Simple redirect function
+function redirectToVariant() {
+  const config = variantConfig[selectedVariant];
+  if (config) {
+    console.log('Redirecting to:', config.redirectUrl);
+    window.location.href = config.redirectUrl;
+  }
+}
+
+// Main initialization
+function init() {
+  console.log('Initializing variant handler...');
   
-  buttonPriceSelectors.forEach(selector => {
-    const elements = document.querySelectorAll(selector);
-    elements.forEach(el => {
-      el.textContent = config.price;
+  // 1. Set all variant box prices immediately
+  setPricesOnLoad();
+  
+  // 2. Set initial button price
+  updateButtonPrice();
+  
+  // 3. Handle variant selection
+  const radios = document.querySelectorAll('input[name^="kaching-bundles-deal"]');
+  radios.forEach(radio => {
+    radio.addEventListener('change', function() {
+      if (this.checked) {
+        selectedVariant = this.value;
+        console.log('Selected variant:', selectedVariant);
+        updateButtonPrice();
+      }
     });
   });
-}
-
-// Aggressive redirect handler - multiple approaches
-function forceRedirect(variantId) {
-  const config = variantConfig[variantId];
-  if (!config) {
-    console.error('No config found for variant:', variantId);
-    return;
-  }
   
-  console.log('FORCING REDIRECT TO:', config.redirectUrl);
-  
-  // Try multiple redirect methods
-  try {
-    // Method 1: Direct location change
-    window.location.href = config.redirectUrl;
-    
-    // Method 2: Replace if href doesn't work
-    setTimeout(() => {
-      window.location.replace(config.redirectUrl);
-    }, 100);
-    
-    // Method 3: Assign if replace doesn't work  
-    setTimeout(() => {
-      window.location.assign(config.redirectUrl);
-    }, 200);
-    
-  } catch (error) {
-    console.error('Redirect failed:', error);
-    // Fallback: open in new window
-    window.open(config.redirectUrl, '_self');
-  }
-}
-
-// Comprehensive button event binding
-function bindAllButtons() {
-  console.log('Binding all buttons...');
-  
-  // Get ALL possible button elements
-  const allButtons = [
-    ...document.querySelectorAll('button'),
-    ...document.querySelectorAll('[role="button"]'),
-    ...document.querySelectorAll('.gp-button-atc'),
-    ...document.querySelectorAll('.tcustomizer-submit-button'),
-    ...document.querySelectorAll('gp-product-button'),
-    ...document.querySelectorAll('[data-id*="gwai"]')
-  ];
-  
-  console.log('Found buttons:', allButtons.length);
-  
-  allButtons.forEach((button, index) => {
-    // Skip if it's clearly not an add to cart button
-    const buttonText = button.textContent?.toLowerCase() || '';
-    const isAddToCart = buttonText.includes('add to cart') || 
-                       buttonText.includes('add') ||
-                       button.querySelector('.button-text') ||
-                       button.closest('gp-product-button');
-    
-    if (isAddToCart) {
-      console.log(`Binding button ${index}:`, buttonText);
+  // 4. Handle add to cart button - SIMPLE approach
+  document.addEventListener('click', function(e) {
+    // Check if clicked element is an add to cart button
+    const button = e.target.closest('button');
+    if (button) {
+      const buttonText = button.textContent || '';
+      const isAddToCart = buttonText.includes('ADD TO CART') || 
+                         button.getAttribute('aria-label')?.includes('ADD TO CART') ||
+                         button.classList.contains('gp-button-atc') ||
+                         button.classList.contains('tcustomizer-submit-button');
       
-      // Remove all existing listeners
-      button.removeEventListener('click', handleRedirectClick);
-      button.removeEventListener('submit', handleRedirectClick);
-      
-      // Add multiple event types
-      button.addEventListener('click', handleRedirectClick, true);
-      button.addEventListener('mousedown', handleRedirectClick, true);
-      
-      // Also bind to parent if it's a gp-product-button
-      const parent = button.closest('gp-product-button');
-      if (parent) {
-        parent.removeEventListener('click', handleRedirectClick);
-        parent.addEventListener('click', handleRedirectClick, true);
+      if (isAddToCart) {
+        console.log('Add to cart button clicked!');
+        e.preventDefault();
+        e.stopPropagation();
+        redirectToVariant();
       }
     }
-  });
+  }, true);
   
-  // Also bind to forms
-  const forms = document.querySelectorAll('form');
-  forms.forEach(form => {
-    form.addEventListener('submit', handleRedirectClick, true);
-  });
+  console.log('Handler initialized successfully');
 }
 
-// The actual redirect handler
-function handleRedirectClick(e) {
-  console.log('Button clicked! Event type:', e.type);
-  console.log('Selected variant:', selectedVariant);
-  
-  e.preventDefault();
-  e.stopPropagation();
-  e.stopImmediatePropagation();
-  
-  // Force redirect immediately
-  forceRedirect(selectedVariant);
-  
-  return false;
-}    
+// Run when page loads
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
 
-    </script>
+// Also run after a short delay to catch any dynamically loaded content
+setTimeout(init, 1000);
+</script>
 </html>
