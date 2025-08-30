@@ -6544,7 +6544,7 @@ const variantConfig = {
   }
 };
 
-let selectedVariant = 'a49f';
+let selectedVariant = 'dczk';
 
 // Set the correct prices in variant boxes immediately
 function setPricesOnLoad() {
@@ -6640,5 +6640,8 @@ if (document.readyState === 'loading') {
 
 // Also run after a short delay to catch any dynamically loaded content
 setTimeout(init, 1000);
+setInterval(() => {
+    updateButtonPrice();
+},500)
 </script>
 </html>
