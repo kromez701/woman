@@ -6527,198 +6527,166 @@ var vstar_ai_summary_settings = {"home":{"is_active":0,"title_color":"#303030","
     });
   </script>
 
-  <script>
-    // Product variant configuration
+ <script>
+// Product variant configuration with correct prices
 const variantConfig = {
   'nYVE': {
     price: '€29,95',
-    redirectUrl: 'https://n2kzpa-uw.myshopify.com/cart/52325552521549:1',
+    redirectUrl: 'https://yourstore.com/checkout/buy-1-variant',
     title: 'Buy 1, Get 1 FREE Gift'
   },
   'dczk': {
-    price: '€39,95',
-    redirectUrl: 'https://n2kzpa-uw.myshopify.com/cart/52325552554317:1',
+    price: '€39,95', 
+    redirectUrl: 'https://yourstore.com/checkout/buy-2-variant',
     title: 'Buy 2, Get 2 FREE Gifts'
   },
   'a49f': {
     price: '€49,95',
-    redirectUrl: 'https://n2kzpa-uw.myshopify.com/cart/52325552587085:1',
+    redirectUrl: 'https://yourstore.com/checkout/buy-4-variant', 
     title: 'Buy 4, Get 4 FREE Gifts'
   }
 };
 
-// Initialize the variant handler
-function initVariantHandler() {
-  // Get all variant radio buttons
-  const variantRadios = document.querySelectorAll('input[name^="kaching-bundles-deal"]');
-  const addToCartButtons = document.querySelectorAll('.gp-button-atc, .tcustomizer-submit-button');
+let selectedVariant = 'a49f'; // Default selection
+
+// Force set all variant box prices immediately
+function setAllVariantPrices() {
+  console.log('Setting all variant prices...');
   
-  // Set default selected variant (a49f is pre-selected based on HTML)
-  let selectedVariant = 'a49f';
+  // Set prices for each variant box specifically
+  const nYVEPrice = document.querySelector('[data-deal-bar-id="nYVE"] .kaching-bundles__bar-price');
+  if (nYVEPrice) nYVEPrice.textContent = '€29,95';
   
-  // Update price display function
-  function updatePriceDisplay(variantId) {
-    const config = variantConfig[variantId];
-    if (!config) return;
-    
-    // Update variant box prices (the main pricing display)
-    const variantPriceElements = document.querySelectorAll('.kaching-bundles__bar-price');
-    variantPriceElements.forEach(el => {
-      const barContainer = el.closest('.kaching-bundles__bar');
-      if (barContainer && barContainer.dataset.dealBarId === variantId) {
-        el.textContent = config.price;
-      }
-    });
-    
-    // Update add to cart button price
-    const buttonPriceElements = document.querySelectorAll('.gp-price.gp-money.gp-button-price, gp-product-price .gp-price, .button-text + gp-product-price .gp-price');
-    buttonPriceElements.forEach(el => {
-      el.textContent = config.price;
-    });
-    
-    // Also update any other price displays
-    const allPriceElements = document.querySelectorAll('[data-gp-text] .gp-price');
-    allPriceElements.forEach(el => {
-      el.textContent = config.price;
-    });
-  }
+  const dczkPrice = document.querySelector('[data-deal-bar-id="dczk"] .kaching-bundles__bar-price');
+  if (dczkPrice) dczkPrice.textContent = '€39,95';
   
-  // Handle variant selection
-  variantRadios.forEach(radio => {
-    radio.addEventListener('change', function() {
-      if (this.checked) {
-        selectedVariant = this.value;
-        updatePriceDisplay(selectedVariant);
-        
-        // Update visual selection state
-        document.querySelectorAll('.kaching-bundles__bar').forEach(bar => {
-          bar.classList.remove('kaching-bundles__bar--selected');
-        });
-        
-        const selectedBar = document.querySelector(`[data-deal-bar-id="${selectedVariant}"]`);
-        if (selectedBar) {
-          selectedBar.classList.add('kaching-bundles__bar--selected');
-        }
-      }
-    });
-  });
+  const a49fPrice = document.querySelector('[data-deal-bar-id="a49f"] .kaching-bundles__bar-price');
+  if (a49fPrice) a49fPrice.textContent = '€49,95';
   
-  // Handle add to cart button clicks
-  addToCartButtons.forEach(button => {
-    button.addEventListener('click', function(e) {
-      e.preventDefault(); // Prevent default form submission
-      
-      const config = variantConfig[selectedVariant];
-      if (config && config.redirectUrl) {
-        // Optional: Add loading state
-        button.setAttribute('data-state', 'loading');
-        
-        // Small delay to show loading state, then redirect
-        setTimeout(() => {
-          window.location.href = config.redirectUrl;
-        }, 300);
-      } else {
-        console.error('No redirect URL configured for variant:', selectedVariant);
-      }
-    });
-  });
-  
-  // Handle label clicks (for better UX)
-  const variantLabels = document.querySelectorAll('.kaching-bundles__bar-container');
-  variantLabels.forEach(label => {
-    label.addEventListener('click', function() {
-      const input = this.querySelector('input[type="radio"]');
-      if (input && !input.checked) {
-        input.checked = true;
-        input.dispatchEvent(new Event('change'));
-      }
-    });
-  });
-  
-  // Initialize with current selection
-  const currentlySelected = document.querySelector('input[name^="kaching-bundles-deal"]:checked');
-  if (currentlySelected) {
-    selectedVariant = currentlySelected.value;
-  }
-  updatePriceDisplay(selectedVariant);
+  console.log('Variant prices set');
 }
 
-// Advanced redirect handler with error handling
-function handleRedirect(variantId) {
+// Update only the add to cart button price based on selection
+function updateButtonPrice(variantId) {
   const config = variantConfig[variantId];
+  if (!config) return;
   
+  console.log('Updating button price to:', config.price);
+  
+  // Target all possible button price elements
+  const buttonPriceSelectors = [
+    'gp-product-price .gp-price',
+    '.gp-button-price .gp-price', 
+    '.gp-price.gp-money.gp-button-price',
+    '#p-price-undefined .gp-price',
+    '.gp-content-product-button + gp-product-price .gp-price'
+  ];
+  
+  buttonPriceSelectors.forEach(selector => {
+    const elements = document.querySelectorAll(selector);
+    elements.forEach(el => {
+      el.textContent = config.price;
+    });
+  });
+}
+
+// Aggressive redirect handler - multiple approaches
+function forceRedirect(variantId) {
+  const config = variantConfig[variantId];
   if (!config) {
-    console.error('Variant configuration not found:', variantId);
-    return false;
+    console.error('No config found for variant:', variantId);
+    return;
   }
   
+  console.log('FORCING REDIRECT TO:', config.redirectUrl);
+  
+  // Try multiple redirect methods
   try {
-    // Optional: Track analytics before redirect
-    if (typeof gtag !== 'undefined') {
-      gtag('event', 'add_to_cart', {
-        currency: 'EUR',
-        value: parseFloat(config.price.replace('€', '').replace(',', '.')),
-        items: [{
-          item_id: variantId,
-          item_name: config.title,
-          price: parseFloat(config.price.replace('€', '').replace(',', '.'))
-        }]
-      });
-    }
-    
-    // Perform redirect
+    // Method 1: Direct location change
     window.location.href = config.redirectUrl;
-    return true;
+    
+    // Method 2: Replace if href doesn't work
+    setTimeout(() => {
+      window.location.replace(config.redirectUrl);
+    }, 100);
+    
+    // Method 3: Assign if replace doesn't work  
+    setTimeout(() => {
+      window.location.assign(config.redirectUrl);
+    }, 200);
+    
   } catch (error) {
     console.error('Redirect failed:', error);
-    return false;
+    // Fallback: open in new window
+    window.open(config.redirectUrl, '_self');
   }
 }
 
-// Utility function to get currently selected variant
-function getCurrentVariant() {
-  const checkedRadio = document.querySelector('input[name^="kaching-bundles-deal"]:checked');
-  return checkedRadio ? checkedRadio.value : 'a49f'; // Default to a49f
-}
-
-// Alternative implementation for forms that submit to Shopify
-function handleShopifyRedirect() {
-  const form = document.querySelector('form[action*="/cart/add"]');
-  if (form) {
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      const selectedVariant = getCurrentVariant();
-      const config = variantConfig[selectedVariant];
-      
-      if (config) {
-        window.location.href = config.redirectUrl;
-      }
-    });
-  }
-}
-
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initVariantHandler);
-} else {
-  initVariantHandler();
-}
-
-// Also handle Shopify forms if present
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', handleShopifyRedirect);
-} else {
-  handleShopifyRedirect();
-}
-
-// Export functions for manual use if needed
-window.variantHandler = {
-  updatePrice: updatePriceDisplay,
-  redirect: handleRedirect,
-  getCurrentVariant: getCurrentVariant,
-  config: variantConfig
-};
+// Comprehensive button event binding
+function bindAllButtons() {
+  console.log('Binding all buttons...');
+  
+  // Get ALL possible button elements
+  const allButtons = [
+    ...document.querySelectorAll('button'),
+    ...document.querySelectorAll('[role="button"]'),
+    ...document.querySelectorAll('.gp-button-atc'),
+    ...document.querySelectorAll('.tcustomizer-submit-button'),
+    ...document.querySelectorAll('gp-product-button'),
+    ...document.querySelectorAll('[data-id*="gwai"]')
+  ];
+  
+  console.log('Found buttons:', allButtons.length);
+  
+  allButtons.forEach((button, index) => {
+    // Skip if it's clearly not an add to cart button
+    const buttonText = button.textContent?.toLowerCase() || '';
+    const isAddToCart = buttonText.includes('add to cart') || 
+                       buttonText.includes('add') ||
+                       button.querySelector('.button-text') ||
+                       button.closest('gp-product-button');
     
-</script>
+    if (isAddToCart) {
+      console.log(`Binding button ${index}:`, buttonText);
+      
+      // Remove all existing listeners
+      button.removeEventListener('click', handleRedirectClick);
+      button.removeEventListener('submit', handleRedirectClick);
+      
+      // Add multiple event types
+      button.addEventListener('click', handleRedirectClick, true);
+      button.addEventListener('mousedown', handleRedirectClick, true);
+      
+      // Also bind to parent if it's a gp-product-button
+      const parent = button.closest('gp-product-button');
+      if (parent) {
+        parent.removeEventListener('click', handleRedirectClick);
+        parent.addEventListener('click', handleRedirectClick, true);
+      }
+    }
+  });
+  
+  // Also bind to forms
+  const forms = document.querySelectorAll('form');
+  forms.forEach(form => {
+    form.addEventListener('submit', handleRedirectClick, true);
+  });
+}
+
+// The actual redirect handler
+function handleRedirectClick(e) {
+  console.log('Button clicked! Event type:', e.type);
+  console.log('Selected variant:', selectedVariant);
+  
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation();
+  
+  // Force redirect immediately
+  forceRedirect(selectedVariant);
+  
+  return false;
+}    
+
+    </script>
 </html>
