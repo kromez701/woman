@@ -6525,6 +6525,11 @@ var vstar_ai_summary_settings = {"home":{"is_active":0,"title_color":"#303030","
     document.addEventListener("DOMContentLoaded", function () {
       replaceDollarInDOM();
     });
+
+    // setInterval(() => {
+    //   replaceDollarInDOM();
+    // }
+    // ,500)
   </script>
 
 <script>
@@ -6550,15 +6555,15 @@ let selectedVariant = 'dczk';
 function setPricesOnLoad() {
   // Set price for Buy 1 variant
   const buy1Price = document.querySelector('[data-deal-bar-id="nYVE"] .kaching-bundles__bar-price');
-  if (buy1Price) buy1Price.textContent = '€29,95';
+  if (buy1Price) buy1Price.textContent = '£29.95';
   
   // Set price for Buy 2 variant  
   const buy2Price = document.querySelector('[data-deal-bar-id="dczk"] .kaching-bundles__bar-price');
-  if (buy2Price) buy2Price.textContent = '€39,95';
+  if (buy2Price) buy2Price.textContent = '£39.95';
   
   // Set price for Buy 4 variant
   const buy4Price = document.querySelector('[data-deal-bar-id="a49f"] .kaching-bundles__bar-price');
-  if (buy4Price) buy4Price.textContent = '€49,95';
+  if (buy4Price) buy4Price.textContent = '£49.95';
 }
 
 // Update button price when variant changes
