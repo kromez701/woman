@@ -6526,4 +6526,191 @@ var vstar_ai_summary_settings = {"home":{"is_active":0,"title_color":"#303030","
       replaceDollarInDOM();
     });
   </script>
+
+  <script>
+
+    // Product variant configuration
+const variantConfig = {
+  'nYVE': {
+    price: '€29,95',
+    redirectUrl: 'https://yourstore.com/checkout/buy-1-variant',
+    title: 'Buy 1, Get 1 FREE Gift'
+  },
+  'dczk': {
+    price: '€39,95',
+    redirectUrl: 'https://yourstore.com/checkout/buy-2-variant',
+    title: 'Buy 2, Get 2 FREE Gifts'
+  },
+  'a49f': {
+    price: '€49,95',
+    redirectUrl: 'https://yourstore.com/checkout/buy-4-variant',
+    title: 'Buy 4, Get 4 FREE Gifts'
+  }
+};
+
+// Initialize the variant handler
+function initVariantHandler() {
+  // Get all variant radio buttons
+  const variantRadios = document.querySelectorAll('input[name^="kaching-bundles-deal"]');
+  const addToCartButtons = document.querySelectorAll('.gp-button-atc, .tcustomizer-submit-button');
+  
+  // Set default selected variant (a49f is pre-selected based on HTML)
+  let selectedVariant = 'a49f';
+  
+  // Update price display function
+  function updatePriceDisplay(variantId) {
+    const config = variantConfig[variantId];
+    if (!config) return;
+    
+    // Update all price elements
+    const priceElements = document.querySelectorAll('.gp-price.gp-money, .gp-button-price .gp-price');
+    priceElements.forEach(el => {
+      el.textContent = config.price;
+    });
+    
+    // Update button price specifically
+    const buttonPriceElements = document.querySelectorAll('gp-product-price .gp-price');
+    buttonPriceElements.forEach(el => {
+      el.textContent = config.price;
+    });
+  }
+  
+  // Handle variant selection
+  variantRadios.forEach(radio => {
+    radio.addEventListener('change', function() {
+      if (this.checked) {
+        selectedVariant = this.value;
+        updatePriceDisplay(selectedVariant);
+        
+        // Update visual selection state
+        document.querySelectorAll('.kaching-bundles__bar').forEach(bar => {
+          bar.classList.remove('kaching-bundles__bar--selected');
+        });
+        
+        const selectedBar = document.querySelector(`[data-deal-bar-id="${selectedVariant}"]`);
+        if (selectedBar) {
+          selectedBar.classList.add('kaching-bundles__bar--selected');
+        }
+      }
+    });
+  });
+  
+  // Handle add to cart button clicks
+  addToCartButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault(); // Prevent default form submission
+      
+      const config = variantConfig[selectedVariant];
+      if (config && config.redirectUrl) {
+        // Optional: Add loading state
+        button.setAttribute('data-state', 'loading');
+        
+        // Small delay to show loading state, then redirect
+        setTimeout(() => {
+          window.location.href = config.redirectUrl;
+        }, 300);
+      } else {
+        console.error('No redirect URL configured for variant:', selectedVariant);
+      }
+    });
+  });
+  
+  // Handle label clicks (for better UX)
+  const variantLabels = document.querySelectorAll('.kaching-bundles__bar-container');
+  variantLabels.forEach(label => {
+    label.addEventListener('click', function() {
+      const input = this.querySelector('input[type="radio"]');
+      if (input && !input.checked) {
+        input.checked = true;
+        input.dispatchEvent(new Event('change'));
+      }
+    });
+  });
+  
+  // Initialize with current selection
+  const currentlySelected = document.querySelector('input[name^="kaching-bundles-deal"]:checked');
+  if (currentlySelected) {
+    selectedVariant = currentlySelected.value;
+  }
+  updatePriceDisplay(selectedVariant);
+}
+
+// Advanced redirect handler with error handling
+function handleRedirect(variantId) {
+  const config = variantConfig[variantId];
+  
+  if (!config) {
+    console.error('Variant configuration not found:', variantId);
+    return false;
+  }
+  
+  try {
+    // Optional: Track analytics before redirect
+    if (typeof gtag !== 'undefined') {
+      gtag('event', 'add_to_cart', {
+        currency: 'EUR',
+        value: parseFloat(config.price.replace('€', '').replace(',', '.')),
+        items: [{
+          item_id: variantId,
+          item_name: config.title,
+          price: parseFloat(config.price.replace('€', '').replace(',', '.'))
+        }]
+      });
+    }
+    
+    // Perform redirect
+    window.location.href = config.redirectUrl;
+    return true;
+  } catch (error) {
+    console.error('Redirect failed:', error);
+    return false;
+  }
+}
+
+// Utility function to get currently selected variant
+function getCurrentVariant() {
+  const checkedRadio = document.querySelector('input[name^="kaching-bundles-deal"]:checked');
+  return checkedRadio ? checkedRadio.value : 'a49f'; // Default to a49f
+}
+
+// Alternative implementation for forms that submit to Shopify
+function handleShopifyRedirect() {
+  const form = document.querySelector('form[action*="/cart/add"]');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const selectedVariant = getCurrentVariant();
+      const config = variantConfig[selectedVariant];
+      
+      if (config) {
+        window.location.href = config.redirectUrl;
+      }
+    });
+  }
+}
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initVariantHandler);
+} else {
+  initVariantHandler();
+}
+
+// Also handle Shopify forms if present
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', handleShopifyRedirect);
+} else {
+  handleShopifyRedirect();
+}
+
+// Export functions for manual use if needed
+window.variantHandler = {
+  updatePrice: updatePriceDisplay,
+  redirect: handleRedirect,
+  getCurrentVariant: getCurrentVariant,
+  config: variantConfig
+};
+
+</script>
 </html>
