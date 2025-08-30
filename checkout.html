@@ -6528,7 +6528,6 @@ var vstar_ai_summary_settings = {"home":{"is_active":0,"title_color":"#303030","
   </script>
 
   <script>
-
     // Product variant configuration
 const variantConfig = {
   'nYVE': {
@@ -6543,7 +6542,7 @@ const variantConfig = {
   },
   'a49f': {
     price: '€49,95',
-    redirectUrl: 'https://n2kzpa-uw.myshopify.com/cart/552325552587085:1',
+    redirectUrl: 'https://n2kzpa-uw.myshopify.com/cart/52325552587085:1',
     title: 'Buy 4, Get 4 FREE Gifts'
   }
 };
@@ -6562,15 +6561,24 @@ function initVariantHandler() {
     const config = variantConfig[variantId];
     if (!config) return;
     
-    // Update all price elements
-    const priceElements = document.querySelectorAll('.gp-price.gp-money, .gp-button-price .gp-price');
-    priceElements.forEach(el => {
+    // Update variant box prices (the main pricing display)
+    const variantPriceElements = document.querySelectorAll('.kaching-bundles__bar-price');
+    variantPriceElements.forEach(el => {
+      const barContainer = el.closest('.kaching-bundles__bar');
+      if (barContainer && barContainer.dataset.dealBarId === variantId) {
+        el.textContent = config.price;
+      }
+    });
+    
+    // Update add to cart button price
+    const buttonPriceElements = document.querySelectorAll('.gp-price.gp-money.gp-button-price, gp-product-price .gp-price, .button-text + gp-product-price .gp-price');
+    buttonPriceElements.forEach(el => {
       el.textContent = config.price;
     });
     
-    // Update button price specifically
-    const buttonPriceElements = document.querySelectorAll('gp-product-price .gp-price');
-    buttonPriceElements.forEach(el => {
+    // Also update any other price displays
+    const allPriceElements = document.querySelectorAll('[data-gp-text] .gp-price');
+    allPriceElements.forEach(el => {
       el.textContent = config.price;
     });
   }
@@ -6711,6 +6719,6 @@ window.variantHandler = {
   getCurrentVariant: getCurrentVariant,
   config: variantConfig
 };
-
+    
 </script>
 </html>
